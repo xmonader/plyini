@@ -1,5 +1,7 @@
 import math
 import decimal
+from pprint import pprint
+
 from ply import lex, yacc
 
 
@@ -7,19 +9,18 @@ tokens = ('SECID', 'KEY', 'VALUE')
 literals=("=", "[", "]")
 
 def t_SECID(tok):
-    r'(?<=\[)([a-zA-Z]+[0-9]?)' #only lowercase.
+    r'(?<=\[)([a-zA-Z]+[0-9]?)'
     tok.type="SECID"
     return tok
 
 def t_KEY(tok):
-    "(?<!=)(\w+)" #only lowercase.
+    "(?<!=)(\w+)"
     tok.type='KEY'
     return tok
 
 def t_VALUE(tok):
-    '''(?<=\=)(\w+)''' #only lowercase.
+    '''(?<=\=)(\w+)'''
     tok.type="VALUE"
-    #tok.value=tok.value[]
     return tok
 
 def t_newline(tok):
@@ -32,26 +33,7 @@ def t_error(tok):
 
 t_ignore = " \t"
 
-lexer= lex.lex()
-input= """
-[Sec1]
-k1=v1
-k2=v2
-[Sec2]
-k3=v3
-k4=v4
-[Sec4]
-k5=sahme
-k6=9
-k1=21
-"""
-
-lexer.input(input)
-for tok in lexer:
-    print(tok) #print tok.type, " => ", tok .value, "at (%d, %d)"%(tok.lineno, tok.lexpos)
-
-
-
+#GRAMMAR::
 # inifile: sectionsdef
 #
 # sectionsdef : sectiondef sectionsdef
@@ -122,12 +104,34 @@ def p_keyvaluedef(p):
 def p_error(p):
     print("Syntax error", p)
 
-p = yacc.yacc()
-t=(p.parse(input, lexer=lexer))
-from pprint import pprint
-pprint(t)
-ini={}
-for tup in t:
-    ini[tup[0]]=dict(tup[1])
+def asdict(s):
+    lexer= lex.lex()
 
-pprint(ini)
+    # lexer.input(s)
+    # for tok in lexer:
+    #     print(tok) #print tok.type, " => ", tok .value, "at (%d, %d)"%(tok.lineno, tok.lexpos)
+    p = yacc.yacc()
+    t=(p.parse(s, lexer=lexer))
+    #pprint(t)
+    ini={}
+    for tup in t:
+        ini[tup[0]]=dict(tup[1])
+
+    return ini
+if __name__ == "__main__":
+
+
+    s = """
+[Sec1]
+k1=v1
+k2=v2
+[Sec2]
+k3=v3
+k4=v4
+[Sec4]
+k5=sahme
+k6=9
+k1=21
+    """
+    ini = asdict(s)
+    pprint(ini)
